@@ -16,6 +16,12 @@ class CustomUserCreationForm(UserCreationForm):
     'last_name': forms.TextInput(attrs={'class': 'form-control'}),
     'profile_picture': forms.FileInput(attrs={'class': 'form-control'}),
 }
+    def clean_email(self):
+    email = self.cleaned_data.get('email')
+    if User.objects.filter(email=email).exists():
+        raise forms.ValidationError("Email already exists")
+    return email
+ 
 
 class CustomUserChangeForm(UserChangeForm):
     class Meta:
