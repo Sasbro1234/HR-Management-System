@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}HR Dashboard | HR System{% endblock %}
+{% block header_title %}HR Dashboard{% endblock %}
+
+{% block content %}
+<!-- ── Stat Cards ── -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:24px;">
+
+    <div class="stat-card stat-blue">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Total Employees</p>
+                <h3 id="counter-employees" style="font-size:2.6rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1;" data-target="{{ total_employees }}">0</h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(59,130,246,0.12);display:flex;align-items:center;justify-content:center;color:#3b82f6;">
+                <i class="ph ph-users" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;font-size:0.72rem;font-weight:500;color:#10b981;display:flex;align-items:center;gap:4px;">
+            <i class="ph ph-check-circle"></i> Active in system
+        </div>
+    </div>
+
+    <div class="stat-card stat-orange">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Pending Leaves</p>
+                <h3 id="counter-leaves" style="font-size:2.6rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1;" data-target="{{ pending_leaves_count|default:0 }}">0</h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;">
+                <i class="ph ph-calendar-blank" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;font-size:0.72rem;font-weight:600;color:#f59e0b;display:flex;align-items:center;gap:4px;">
+            <i class="ph ph-warning"></i> Requires action
+        </div>
+    </div>
+
+    <div class="stat-card stat-green">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Present Today</p>
+                <h3 id="counter-present" style="font-size:2.6rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1;" data-target="{{ present_today }}">0</h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(16,185,129,0.12);display:flex;align-items:center;justify-content:center;color:#10b981;">
+                <i class="ph ph-check-circle" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;font-size:0.72rem;color:var(--text-muted);font-weight:500;">
+            Out of {{ total_employees }} employees
+        </div>
+    </div>
+
+    <div class="stat-card stat-purple">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="min-width:0;">
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Total Payroll</p>
+                <h3 style="font-size:1.5rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1;white-space:nowrap;">Rs.&nbsp;{{ total_monthly_payroll|default:"0" }}</h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(139,92,246,0.12);display:flex;align-items:center;justify-content:center;color:#8b5cf6;flex-shrink:0;">
+                <i class="ph ph-money" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;font-size:0.72rem;color:var(--text-muted);font-weight:500;">
+            This month's net salaries
+        </div>
+    </div>
+</div>
+
+<!-- ── Charts Row ── -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+
+    <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-primary);margin:0;">Employees by Department</h3>
+        </div>
+        <div style="position:relative;height:260px;">
+            <canvas id="deptChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-primary);margin:0;">Approved Leaves — {{ current_year }}</h3>
+            <span style="font-size:0.7rem;font-weight:700;color:var(--accent);background:rgba(99,102,241,0.1);padding:3px 10px;border-radius:99px;">{{ total_approved_leaves }} Total</span>
+        </div>
+        <div style="position:relative;height:260px;">
+            <canvas id="leaveChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ── Monthly Salary Bar Chart ── -->
+<div class="chart-card" style="margin-bottom:4px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h3 style="font-size:0.9rem;font-weight:700;color:var(--text-primary);margin:0;">Monthly Salary Overview</h3>
+        <span style="font-size:0.7rem;font-weight:700;color:#8b5cf6;background:rgba(139,92,246,0.1);padding:3px 10px;border-radius:99px;">{{ current_year }} Full Year</span>
+    </div>
+    <div style="position:relative;height:220px;">
+        <canvas id="salaryChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // ── Animated Counters ──
+    document.querySelectorAll('[data-target]').forEach(el => {
+        const target = parseInt(el.dataset.target, 10) || 0;
+        animateCounter(el, target, 1100);
+    });
+
+    // ── Chart colours based on current theme ──
+    const dark = document.documentElement.classList.contains('dark');
+    const gridC  = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+    const labelC = dark ? '#94a3b8' : '#6b7280';
+
+    const chartDefaults = {
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { color: labelC, font: { family: 'Poppins', size: 11 } }, grid: { color: gridC } },
+            x: { ticks: { color: labelC, font: { family: 'Poppins', size: 11 } }, grid: { display: false } }
+        }
+    };
+
+    // ── Dept Doughnut ──
+    new Chart(document.getElementById('deptChart'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ dept_labels|safe }},
+            datasets: [{
+                data: {{ dept_counts|safe }},
+                backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#14b8a6','#ec4899'],
+                hoverBackgroundColor: ['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0d9488','#db2777'],
+                borderWidth: 0, hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 900, easing: 'easeInOutQuart' },
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: labelC, font: { family:'Poppins', size:12, weight:'600' }, padding:16, usePointStyle:true, pointStyleWidth:10 }
+                }
+            },
+            cutout: '70%'
+        }
+    });
+
+    // ── Leave Trend Line ──
+    const leaveCtx = document.getElementById('leaveChart').getContext('2d');
+    const leaveGrad = leaveCtx.createLinearGradient(0, 0, 0, 260);
+    leaveGrad.addColorStop(0, dark ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.15)');
+    leaveGrad.addColorStop(1, 'rgba(99,102,241,0)');
+    new Chart(leaveCtx, {
+        type: 'line',
+        data: {
+            labels: {{ month_names|safe }},
+            datasets: [{
+                label: 'Approved Leaves',
+                data: {{ leave_trend_data|safe }},
+                borderColor: dark ? '#818cf8' : '#6366f1',
+                backgroundColor: leaveGrad,
+                borderWidth: 2.5, fill: true, tension: 0.42,
+                pointBackgroundColor: dark ? '#818cf8' : '#6366f1',
+                pointRadius: 4, pointHoverRadius: 7,
+                pointBorderColor: dark ? '#1e1b4b' : '#fff',
+                pointBorderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1000, easing: 'easeInOutQuart' },
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: labelC, stepSize: 1, font: { family: 'Poppins', size: 11 } }, grid: { color: gridC } },
+                x: { ticks: { color: labelC, font: { family: 'Poppins', size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+
+    // ── Monthly Salary Bar ──
+    const barCtx = document.getElementById('salaryChart').getContext('2d');
+    const barGrad = barCtx.createLinearGradient(0, 0, 0, 220);
+    barGrad.addColorStop(0, dark ? 'rgba(139,92,246,0.8)' : 'rgba(139,92,246,0.75)');
+    barGrad.addColorStop(1, dark ? 'rgba(79,70,229,0.4)' : 'rgba(79,70,229,0.3)');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ month_names|safe }},
+            datasets: [{
+                label: 'Net Salary (Rs.)',
+                data: {{ monthly_payroll_data|safe }},
+                backgroundColor: barGrad,
+                hoverBackgroundColor: '#8b5cf6',
+                borderRadius: 8, borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1000, delay: ctx => ctx.dataIndex * 60, easing: 'easeInOutQuart' },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ' Rs. ' + Number(ctx.raw).toLocaleString('en-LK') } }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { color: labelC, font: { family: 'Poppins', size: 10 }, callback: v => 'Rs.' + Number(v).toLocaleString() }, grid: { color: gridC } },
+                x: { ticks: { color: labelC, font: { family: 'Poppins', size: 11 } }, grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

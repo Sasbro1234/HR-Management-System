@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Dashboard | HR System{% endblock %}
+{% block header_title %}My Dashboard{% endblock %}
+
+{% block content %}
+<!-- ── Stat Cards ── -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:24px;">
+
+    <!-- Remaining Leaves -->
+    <div class="stat-card stat-blue">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+            <div>
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Remaining Leaves</p>
+                <h3 style="font-size:2.4rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1;">{{ remaining_leaves }}</h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(59,130,246,0.12);display:flex;align-items:center;justify-content:center;color:#3b82f6;flex-shrink:0;">
+                <i class="ph ph-calendar-check" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <a href="{% url 'leave_apply' %}" class="btn-primary" style="font-size:0.75rem;padding:8px 16px;">Apply for Leave</a>
+        </div>
+    </div>
+
+    <!-- Attendance Today -->
+    <div class="stat-card stat-green">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+            <div>
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Attendance Today</p>
+                <h3 style="font-size:1.5rem;font-weight:800;margin:0;line-height:1;{% if attendance_today %}color:#10b981;{% else %}color:#ef4444;{% endif %}">
+                    {% if attendance_today %}Marked{% else %}Not Marked{% endif %}
+                </h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;{% if attendance_today %}background:rgba(16,185,129,0.12);color:#10b981;{% else %}background:rgba(239,68,68,0.12);color:#ef4444;{% endif %}display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="ph ph-clock" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <a href="{% url 'attendance_list' %}" class="btn-primary" style="font-size:0.75rem;padding:8px 16px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);box-shadow:0 6px 16px rgba(16,185,129,0.35);">View History</a>
+        </div>
+    </div>
+
+    <!-- Recent Payslip -->
+    <div class="stat-card stat-purple">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+            <div style="min-width:0;">
+                <p style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Recent Payslip</p>
+                <h3 style="font-size:1.4rem;font-weight:800;color:var(--text-primary);margin:0;line-height:1;white-space:nowrap;">
+                    {% if recent_payslip %}
+                        {% if recent_payslip.month == '1' %}Jan{% elif recent_payslip.month == '2' %}Feb{% elif recent_payslip.month == '3' %}Mar{% elif recent_payslip.month == '4' %}Apr{% elif recent_payslip.month == '5' %}May{% elif recent_payslip.month == '6' %}Jun{% elif recent_payslip.month == '7' %}Jul{% elif recent_payslip.month == '8' %}Aug{% elif recent_payslip.month == '9' %}Sep{% elif recent_payslip.month == '10' %}Oct{% elif recent_payslip.month == '11' %}Nov{% else %}Dec{% endif %} {{ recent_payslip.year }}
+                    {% else %}No Records{% endif %}
+                </h3>
+            </div>
+            <div style="width:48px;height:48px;border-radius:12px;background:rgba(139,92,246,0.12);display:flex;align-items:center;justify-content:center;color:#8b5cf6;flex-shrink:0;">
+                <i class="ph ph-receipt" style="font-size:1.5rem;"></i>
+            </div>
+        </div>
+        <div style="margin-top:16px;">
+            <a href="{% url 'export_payroll' %}" class="btn-primary" style="font-size:0.75rem;padding:8px 16px;background:linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);box-shadow:0 6px 16px rgba(168,85,247,0.35);">Download PDF</a>
+        </div>
+    </div>
+</div>
+
+<!-- ── Announcements ── -->
+<div class="chart-card">
+    <h3 style="font-size:0.95rem;font-weight:700;color:var(--text-primary);margin:0 0 16px;">Announcements</h3>
+    <div style="padding:16px 20px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:12px;border-left:3px solid #3b82f6;">
+        <strong style="font-size:0.875rem;color:var(--text-primary);">Welcome back, {{ request.user.first_name|default:request.user.username }}!</strong>
+        <p style="font-size:0.8rem;color:var(--text-muted);margin:6px 0 0;">Please ensure your profile picture and contact details are up to date on the <a href="{% url 'profile' %}" style="color:var(--accent);font-weight:600;text-decoration:none;">Profile page</a>.</p>
+    </div>
+</div>
+{% endblock %}
