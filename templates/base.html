@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HR Dashboard{% endblock %}</title>
+    <script>
+        // STRICT THEME CHECK - NO DEPENDENCIES
+        (function() {
+            try {
+                // Default to light mode as requested
+                const t = localStorage.getItem('hr_theme_mode') || 'light';
+                if (t === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { fontFamily: { sans: ['Poppins','Inter','sans-serif'] } } }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* ════════════════════════════════════════
+           CSS VARIABLES — THEME SYSTEM
+        ════════════════════════════════════════ */
+        :root {
+            --bg-page:      #f4f6f9;
+            --bg-sidebar:   #1a1f35;
+            --bg-card:      rgba(255,255,255,0.92);
+            --bg-header:    rgba(255,255,255,0.85);
+            --text-primary: #111827;
+            --text-muted:   #6b7280;
+            --text-sidebar: rgba(255,255,255,0.85);
+            --border:       rgba(0,0,0,0.06);
+            --border-subtle:rgba(0,0,0,0.04);
+            --shadow-card:  0 4px 24px rgba(59,130,246,0.12), 0 0 0 1px rgba(59,130,246,0.05); /* Individual element glow */
+            --accent:       #4f46e5;
+            --accent-2:     #2563eb;
+            --radius:       18px;
+            --transition:   350ms cubic-bezier(0.4,0,0.2,1);
+        }
+        html.dark {
+            --bg-page:      #080c1e;   
+            --bg-sidebar:   #0d1430;   
+            --bg-card:      rgba(20,25,50,0.65); 
+            --bg-header:    rgba(14,20,48,0.85);
+            --text-primary: #ffffff;   
+            --text-muted:   #cbd5e1;   
+            --text-sidebar: #e2e8f0;   
+            --border:       rgba(255,255,255,0.15); 
+            --border-subtle:rgba(255,255,255,0.08); 
+            --shadow-card:  0 0 0 1px rgba(99,102,241,0.15), 0 12px 40px rgba(0,0,0,0.6), 0 0 35px rgba(99,102,241,0.12), inset 0 0 30px rgba(255,255,255,0.02); /* Individual element indigo glow */
+            --accent:       #818cf8;
+            --accent-2:     #60a5fa;
+        }
+
+        /* ════════════════════════════════════════
+           BASE RESET & TYPOGRAPHY
+        ════════════════════════════════════════ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            transition-property: background-color, border-color, color, box-shadow, transform;
+            transition-duration: var(--transition);
+            transition-timing-function: cubic-bezier(0.4,0,0.2,1);
+        }
+        body {
+            font-family: 'Poppins', 'Inter', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            margin: 0; display: flex; height: 100vh; overflow: hidden;
+            position: relative;
+        }
+
+        /* ── Advanced HTML5 Canvas Background Element ── */
+        #bg-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none;
+            opacity: 1; transition: opacity 0.5s ease;
+        }
+        
+        /* Fallback dark mode mesh behind canvas */
+        .dark-bg-canvas {
+            position: absolute; inset: 0; pointer-events: none; z-index: -1;
+            background: radial-gradient(circle at 50% 50%, rgba(99,102,241,0.03) 0%, transparent 60%);
+        }
+        html.dark .dark-bg-canvas { opacity: 1; }
+
+        /* ════════════════════════════════════════
+           SIDEBAR
+        ════════════════════════════════════════ */
+        .sidebar {
+            width: 300px; flex-shrink: 0; 
+            background: var(--bg-sidebar);
+            display: flex; flex-direction: column;
+            position: relative; z-index: 20;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 1px 0 20px rgba(0,0,0,0.3);
+        }
+        html.dark .sidebar::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(180deg, rgba(79,70,229,0.18) 0%, transparent 50%);
+        }
+        .sidebar-brand {
+            padding: 32px 30px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0; text-align: left;
+        }
+        .sidebar-brand h1 {
+            font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em; margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            filter: drop-shadow(0 0 16px rgba(255,255,255,0.3));
+        }
+        .sidebar-brand span { color: var(--accent-2); -webkit-text-fill-color: var(--accent-2); }
+        .sidebar-brand p {
+            font-size: 0.75rem; color: rgba(255,255,255,0.65);
+            margin: 6px 0 0; letter-spacing: 0.04em; font-weight: 600; line-height: 1.3;
+        }
+
+        /* Nav links */
+        .sidebar-nav { flex: 1; padding: 20px 16px; overflow-y: auto; }
+        .sidebar-nav a, .sidebar-nav button {
+            display: flex; align-items: center; gap: 16px;
+            width: 100%; padding: 16px 20px; border-radius: 14px;
+            color: var(--text-sidebar); font-size: 1.05rem; font-weight: 500;
+            text-decoration: none; border: none; background: none; cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            position: relative; overflow: hidden; margin-bottom: 6px;
+        }
+        .sidebar-nav a:hover, .sidebar-nav button:hover {
+            color: #ffffff;
+            background: rgba(255,255,255,0.12);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        html.dark .sidebar-nav a:hover { box-shadow: inset 0 0 0 1px rgba(99,102,241,0.25), 0 0 20px rgba(99,102,241,0.1); }
+        .sidebar-nav a .nav-icon { font-size: 1.4rem; transition: all 0.25s ease; color: rgba(255,255,255,0.7); }
+        .sidebar-nav a:hover .nav-icon { transform: scale(1.15); color: var(--accent-2); text-shadow:0 0 10px rgba(96,165,250,0.5); }
+        .sidebar-nav a.active {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: #ffffff !important;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(79,70,229,0.5), inset 0 0 0 1px rgba(255,255,255,0.2);
+        }
+        .sidebar-nav a.active .nav-icon { color: #ffffff; transform: none; text-shadow:none; }
+        .sidebar-separator { height: 1px; background: rgba(255,255,255,0.08); margin: 12px 16px; }
+
+        /* Logout button */
+        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .logout-btn-wrapper {
+            width: 100%; border-radius: 14px; overflow: hidden; position: relative;
+            background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+            transition: all 0.3s cubic-bezier(0.16,1,0.3,1); cursor: pointer;
+        }
+        .logout-btn-wrapper:hover {
+            background: rgba(239,68,68,0.25);
+            border-color: rgba(239,68,68,0.5);
+            box-shadow: 0 8px 24px rgba(239,68,68,0.3), inset 0 0 10px rgba(239,68,68,0.2);
+            transform: translateY(-2px);
+        }
+        .logout-btn {
+            display: flex; align-items: center; gap: 14px; width: 100%;
+            padding: 16px 20px; background: none; border: none; cursor: pointer;
+            color: #fca5a5; font-size: 1.05rem; font-weight: 600; transition: color 0.3s ease;
+        }
+        .logout-btn-wrapper:hover .logout-btn { color: #fecaca; }
+        .logout-icon { font-size: 1.5rem; text-shadow:0 0 8px rgba(239,68,68,0.4); }
+
+        /* ════════════════════════════════════════
+           MAIN AREA
+        ════════════════════════════════════════ */
+        .main-area {
+            flex: 1; display: flex; flex-direction: column; overflow: hidden;
+            background: transparent; position: relative; z-index: 10;
+        }
+        /* Removed content-glow box to keep the background visible */
+
+        /* ════════════════════════════════════════
+           TOPBAR / HEADER
+        ════════════════════════════════════════ */
+        .topbar {
+            height: 80px; flex-shrink: 0; 
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; position: relative; z-index: 30;
+            backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+        }
+        html.dark .topbar { box-shadow: 0 1px 0 rgba(255,255,255,0.08), 0 12px 40px rgba(0,0,0,0.4); }
+        html:not(.dark) .topbar { box-shadow: 0 1px 0 rgba(0,0,0,0.08), 0 4px 24px rgba(0,0,0,0.06); }
+        .topbar-title {
+            font-size: 1.6rem; font-weight: 800; letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        .topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+        /* ── Theme Toggle Switch ── */
+        .theme-toggle {
+            width: 58px; height: 32px; border-radius: 99px; cursor: pointer;
+            position: relative; border: none; outline: none;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            transition: background 0.35s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        html:not(.dark) .theme-toggle {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+        }
+        .theme-toggle-knob {
+            position: absolute; top: 3px; left: 3px;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: #ffffff;
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        html.dark .theme-toggle-knob {
+            transform: translateX(26px);
+            background: linear-gradient(135deg, #4f46e5, #818cf8);
+            box-shadow: 0 0 16px rgba(99,102,241,0.8), inset 0 0 4px rgba(255,255,255,0.5);
+        }
+        html:not(.dark) .theme-toggle-knob { transform: translateX(0); background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+
+        /* ── Icon buttons (topbar) ── */
+        .icon-btn {
+            width: 44px; height: 44px; border-radius: 12px; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            background: transparent; color: var(--text-muted);
+            transition: all 0.25s cubic-bezier(0.16,1,0.3,1); position: relative;
+        }
+        .icon-btn:hover { background: rgba(99,102,241,0.1); color: var(--accent); transform: scale(1.1) translateY(-2px); }
+        html.dark .icon-btn:hover { box-shadow: 0 0 16px rgba(99,102,241,0.3); background: rgba(255,255,255,0.08); }
+        .icon-btn i { font-size: 1.5rem; }
+
+        /* ════════════════════════════════════════
+           CARDS (GLASSMORPHISM)
+        ════════════════════════════════════════ */
+        .glass-card {
+            background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border);
+            box-shadow: var(--shadow-card); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform;
+        }
+        .glass-card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px -8px rgba(99,102,241,0.15), 0 0 0 1px rgba(99,102,241,0.2) !important; border-color: rgba(99,102,241,0.3); }
+        html.dark .glass-card:hover { box-shadow: 0 24px 50px -8px rgba(0,0,0,0.8), 0 0 30px rgba(99,102,241,0.15), 0 0 0 1px rgba(99,102,241,0.4) !important; }
+
+        /* Stat card specific */
+        .stat-card {
+            background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border);
+            box-shadow: var(--shadow-card); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            padding: 26px; cursor: default; transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease, border-color 0.3s ease;
+            will-change: transform; position: relative; overflow: hidden;
+        }
+        .stat-card::before {
+            content: ''; position: absolute; top: 0; right: 0; width: 90px; height: 90px;
+            border-radius: 0 var(--radius) 0 100%; opacity: 0.15; transition: opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
+        }
+        .stat-blue::before   { background: #3b82f6; }
+        .stat-orange::before { background: #f59e0b; }
+        .stat-green::before  { background: #10b981; }
+        .stat-purple::before { background: #8b5cf6; }
+        .stat-card:hover::before { opacity: 0.28; width: 120px; height: 120px; }
+        .stat-card:hover { transform: translateY(-6px); border-color: rgba(99,102,241,0.3); box-shadow: 0 24px 50px -8px rgba(0,0,0,0.12), 0 0 16px rgba(99,102,241,0.1), 0 0 0 1px rgba(99,102,241,0.2); }
+        html.dark .stat-card:hover { box-shadow: 0 24px 50px -8px rgba(0,0,0,0.8), 0 0 30px rgba(99,102,241,0.15), 0 0 0 1px rgba(99,102,241,0.4); }
+
+        .chart-card {
+            background: var(--bg-card); border-radius: var(--radius); border: 1px solid var(--border);
+            box-shadow: var(--shadow-card); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            padding: 26px; transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .chart-card:hover { box-shadow: 0 16px 40px -4px rgba(99,102,241,0.12), 0 0 0 1px rgba(99,102,241,0.15); }
+        html.dark .chart-card:hover { box-shadow: 0 16px 40px -4px rgba(0,0,0,0.6), 0 0 24px rgba(99,102,241,0.1), 0 0 0 1px rgba(99,102,241,0.3); }
+
+        /* ════════════════════════════════════════
+           FORM CONTROLS (INPUTS, SELECTS, DROPDOWNS)
+        ════════════════════════════════════════ */
+        input, select, textarea {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 14px;
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
+        }
+        
+        /* Explicit dropdown options styling to prevent invisible text */
+        option {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+        }
+        html.dark option {
+            background-color: #0f172a !important;
+            color: #ffffff !important;
+        }
+        
+        /* Dark mode inputs override to match theme */
+        html.dark input, html.dark select, html.dark textarea {
+            background-color: rgba(15, 23, 42, 0.8) !important;
+            border-color: rgba(255,255,255,0.15) !important;
+            color: #ffffff !important;
+        }
+        html.dark input::placeholder, html.dark textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+        html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(129,140,248,0.25) !important;
+        }
+
+        /* ════════════════════════════════════════
+           BUTTONS
+        ════════════════════════════════════════ */
+        .btn-primary {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer;
+            font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600;
+            background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+            color: #fff; position: relative; overflow: hidden; text-decoration: none;
+            transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease;
+            box-shadow: 0 6px 16px rgba(79,70,229,0.35), inset 0 0 0 1px rgba(255,255,255,0.15);
+        }
+        .btn-primary::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+            transition: opacity 0.25s ease; opacity: 0;
+        }
+        .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 28px rgba(79,70,229,0.5), inset 0 0 0 1px rgba(255,255,255,0.3); color:#fff; }
+        .btn-primary:hover::before { opacity: 1; }
+        .btn-primary:active { transform: translateY(0) scale(0.98); box-shadow: 0 4px 10px rgba(79,70,229,0.4); }
+
+        /* ════════════════════════════════════════
+           PROFILE PICTURE
+        ════════════════════════════════════════ */
+        .profile-btn {
+            display:flex; align-items:center; text-decoration:none; padding:4px 16px 4px 6px; margin-left:8px; 
+            border-radius:99px; border:1px solid transparent; background:transparent; transition:all 0.3s cubic-bezier(0.16,1,0.3,1);
+        }
+        .profile-btn:hover { background:rgba(255,255,255,0.05); border-color:var(--border-subtle); box-shadow:0 0 16px rgba(0,0,0,0.05); }
+        .profile-img-wrap {
+            width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin-right: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15); border: 2px solid rgba(255,255,255,0.4); transition:all 0.3s ease;
+        }
+        html.dark .profile-img-wrap { border-color:rgba(255,255,255,0.1); }
+        .profile-btn:hover .profile-img-wrap { transform: scale(1.1) rotate(5deg); border-color:var(--accent-2); box-shadow:0 0 20px rgba(96,165,250,0.6); }
+
+        /* ════════════════════════════════════════
+           PAGE ANIMATIONS
+        ════════════════════════════════════════ */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        main#main-content > * { opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+        main#main-content > *:nth-child(1) { animation-delay: 40ms; }
+        main#main-content > *:nth-child(2) { animation-delay: 120ms; }
+        main#main-content > *:nth-child(3) { animation-delay: 200ms; }
+        main#main-content > *:nth-child(4) { animation-delay: 280ms; }
+
+        /* ════════════════════════════════════════
+           NOTIFICATION DROPDOWN
+        ════════════════════════════════════════ */
+        #notif-dropdown:not(.hidden) { animation: fadeUp 0.25s cubic-bezier(0.16,1,0.3,1) forwards; transform-origin: top right; }
+        .notif-item { transition: background 0.25s ease, transform 0.25s ease; }
+        .notif-item:hover { transform: translateX(4px); background: rgba(255,255,255,0.05); }
+        html.dark .notif-item:hover { background: rgba(255,255,255,0.08); }
+        
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 99px; }
+        html.dark ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.45); }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+        html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.65); }
+    </style>
+</head>
+
+<body>
+    <!-- Advanced Canvas Particle Background -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="dark-bg-canvas" aria-hidden="true"></div>
+
+    <!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <h1 style="font-size: 1.6rem; line-height: 1.1;">HR System<span style="color:var(--accent-2)">.</span></h1>
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.65);margin-top:6px;letter-spacing:0.04em;font-weight:600;line-height:1.3;">HUMAN RESOURCE<br/>MANAGEMENT</p>
+        </div>
+
+        <nav class="sidebar-nav" id="sidebar-nav">
+            <a href="{% url 'dashboard' %}" data-href="/">
+                <i class="ph ph-squares-four nav-icon"></i><span>Dashboard</span>
+            </a>
+            {% if request.user.role == 'HR' %}
+            <a href="{% url 'employee_list' %}" data-href="/employees">
+                <i class="ph ph-users nav-icon"></i><span>Employees</span>
+            </a>
+            <a href="{% url 'leave_list' %}" data-href="/leave">
+                <i class="ph ph-calendar-blank nav-icon"></i><span>Leave Management</span>
+            </a>
+            <a href="{% url 'attendance_list' %}" data-href="/attendance">
+                <i class="ph ph-clock nav-icon"></i><span>Attendance</span>
+            </a>
+            <a href="{% url 'payroll_list' %}" data-href="/payroll">
+                <i class="ph ph-money nav-icon"></i><span>Payroll</span>
+            </a>
+            {% else %}
+            <a href="{% url 'leave_list' %}" data-href="/leave">
+                <i class="ph ph-calendar-plus nav-icon"></i><span>My Leaves</span>
+            </a>
+            <a href="{% url 'attendance_list' %}" data-href="/attendance">
+                <i class="ph ph-clock nav-icon"></i><span>My Attendance</span>
+            </a>
+            <a href="{% url 'payroll_list' %}" data-href="/payroll">
+                <i class="ph ph-receipt nav-icon"></i><span>My Salary</span>
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <div class="logout-btn-wrapper">
+                    <button type="submit" class="logout-btn">
+                        <i class="ph ph-sign-out logout-icon"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+    <div class="main-area">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-title">{% block header_title %}Overview{% endblock %}</div>
+
+            <div class="topbar-actions">
+                <!-- Theme Toggle -->
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                    <div class="theme-toggle-knob">
+                        <i class="ph ph-moon dark:block hidden" style="font-size:12px;color:#fff;"></i>
+                        <i class="ph ph-sun dark:hidden block" style="font-size:12px;color:#fff;"></i>
+                    </div>
+                </button>
+
+                <!-- Notification Bell -->
+                <div style="position:relative;">
+                    {% if request.user.role == 'HR' %}
+                        {% with notif_count=pending_leaves_count|default:0 %}
+                        <button class="icon-btn" onclick="toggleNotif(event)" id="notif-btn" aria-label="Notifications">
+                            <i class="ph ph-bell"></i>
+                            <span data-notif-badge data-count="{{ notif_count }}" style="{% if notif_count <= 0 %}display:none;{% endif %}position:absolute;top:6px;right:6px;height:18px;min-width:18px;border-radius:99px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 10px rgba(239,68,68,0.6);animation:pulse 2s infinite;border:2px solid var(--bg-header);">{{ notif_count }}</span>
+                        </button>
+                        {% endwith %}
+                    {% else %}
+                        {% with notif_count=emp_notifications_count|default:0 %}
+                        <button class="icon-btn" onclick="toggleNotif(event)" id="notif-btn" aria-label="Notifications">
+                            <i class="ph ph-bell"></i>
+                            <span data-notif-badge data-count="{{ notif_count }}" style="{% if notif_count <= 0 %}display:none;{% endif %}position:absolute;top:6px;right:6px;height:18px;min-width:18px;border-radius:99px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse 2s infinite;border:2px solid var(--bg-header);">{{ notif_count }}</span>
+                        </button>
+                        {% endwith %}
+                    {% endif %}
+
+                    <!-- Notification Dropdown -->
+                    <div id="notif-dropdown" class="hidden" style="position:absolute;right:0;top:calc(100% + 12px);width:360px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 24px 80px -10px rgba(0,0,0,0.3);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);z-index:999;overflow:hidden;">
+                        <div style="padding:16px 20px;border-bottom:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.02);">
+                            <span style="font-size:0.95rem;font-weight:700;color:var(--text-primary);">Notifications</span>
+                        </div>
+                        <div style="max-height:360px;overflow-y:auto;padding:8px;">
+                            {% if request.user.role == 'HR' %}
+                                {% for leave in pending_leaves %}
+                                    <a href="{% url 'leave_list' %}?status=PENDING" class="notif-item" style="display:flex;align-items:flex-start;gap:14px;padding:12px 16px;border-radius:12px;text-decoration:none;border-bottom:1px solid var(--border-subtle);">
+                                        <div style="width:38px;height:38px;border-radius:50%;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;color:#f59e0b;flex-shrink:0;"><i class="ph ph-calendar" style="font-size:1.1rem;"></i></div>
+                                        <div>
+                                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">{{ leave.employee.get_full_name|default:leave.employee.username }}</div>
+                                            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{ leave.leave_type.name }} &middot; {{ leave.duration }}d &middot; Pending</div>
+                                        </div>
+                                    </a>
+                                {% empty %}
+                                    <div style="padding:40px 20px;text-align:center;color:var(--text-muted);">
+                                        <i class="ph ph-check-circle" style="font-size:3rem;color:#10b981;display:block;margin-bottom:12px;filter:drop-shadow(0 0 10px rgba(16,185,129,0.3));"></i>
+                                        <div style="font-size:0.95rem;font-weight:600;">All caught up!</div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                {% for leave in emp_approved_leaves %}
+                                    <a href="{% url 'leave_list' %}" class="notif-item" style="display:flex;align-items:flex-start;gap:14px;padding:12px 16px;border-radius:12px;text-decoration:none;border-bottom:1px solid var(--border-subtle);">
+                                        <div style="width:38px;height:38px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;color:#10b981;flex-shrink:0;"><i class="ph ph-check-circle" style="font-size:1.1rem;"></i></div>
+                                        <div>
+                                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">Leave Approved</div>
+                                            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{ leave.leave_type.name }} &middot; {{ leave.start_date|date:"M d" }}</div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                                {% for leave in emp_rejected_leaves %}
+                                    <a href="{% url 'leave_list' %}" class="notif-item" style="display:flex;align-items:flex-start;gap:14px;padding:12px 16px;border-radius:12px;text-decoration:none;border-bottom:1px solid var(--border-subtle);">
+                                        <div style="width:38px;height:38px;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;color:#ef4444;flex-shrink:0;"><i class="ph ph-x-circle" style="font-size:1.1rem;"></i></div>
+                                        <div>
+                                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">Leave Rejected</div>
+                                            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{ leave.leave_type.name }} &middot; {{ leave.start_date|date:"M d" }}</div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                                {% for payroll in emp_recent_payrolls %}
+                                    <a href="{% url 'payroll_list' %}" class="notif-item" style="display:flex;align-items:flex-start;gap:14px;padding:12px 16px;border-radius:12px;text-decoration:none;border-bottom:1px solid var(--border-subtle);">
+                                        <div style="width:38px;height:38px;border-radius:50%;background:rgba(139,92,246,0.15);display:flex;align-items:center;justify-content:center;color:#8b5cf6;flex-shrink:0;"><i class="ph ph-money" style="font-size:1.1rem;"></i></div>
+                                        <div>
+                                            <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">Salary Processed</div>
+                                            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Payslip for {{ payroll.month }}/{{ payroll.year }} ready</div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                                {% if not emp_approved_leaves and not emp_rejected_leaves and not emp_recent_payrolls %}
+                                    <div style="padding:40px 20px;text-align:center;color:var(--text-muted);">
+                                        <i class="ph ph-bell-slash" style="font-size:3rem;display:block;margin-bottom:12px;opacity:0.5;"></i>
+                                        <div style="font-size:0.95rem;font-weight:600;">No recent updates</div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <a href="{% url 'profile' %}" class="profile-btn" title="Edit Profile">
+                    <div class="profile-img-wrap">
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+                    {% else %}
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg,#4f46e5,#2563eb);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:1.2rem;">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                    {% endif %}
+                    </div>
+                    <div style="text-align:left;display:none;" class="md:block pr-2">
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);line-height:1.2;">{{ request.user.get_full_name|default:request.user.username }}</div>
+                        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-top:2px;">{{ request.user.get_role_display }}</div>
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main id="main-content" style="flex:1;overflow-y:auto;padding:32px 40px;position:relative;z-index:20;">
+            {% if messages %}
+                <div style="margin-bottom:24px;display:flex;flex-direction:column;gap:10px;">
+                    {% for message in messages %}
+                        <div class="flash-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}" style="padding:14px 20px;display:flex;align-items:center;gap:12px;font-size:0.95rem;font-weight:500;">
+                            <i class="ph ph-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}warning{% else %}info{% endif %}" style="font-size:1.3rem;"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- ── Advanced HTML5 Particles Animation Script ── -->
+    <script>
+        (function() {
+            const canvas = document.getElementById('bg-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h, particles = [];
+            
+            function init() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                particles = [];
+                const pCount = Math.floor((w * h) / 15000); // Dynamic density
+                for(let i = 0; i < pCount; i++) {
+                    particles.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: (Math.random() - 0.5) * 0.4,
+                        vy: (Math.random() - 0.5) * 0.4,
+                        r: Math.random() * 3 + 1,
+                        op: Math.random() * 0.8 + 0.4
+                    });
+                }
+            }
+            init();
+            window.addEventListener('resize', init);
+
+            function draw() {
+                ctx.clearRect(0, 0, w, h);
+                const isDark = document.documentElement.classList.contains('dark');
+                // Blue color for light mode, Indigo/purple for dark mode
+                const rAndB = isDark ? '99,102,241' : '59,130,246'; 
+
+                for(let i=0; i < particles.length; i++) {
+                    const p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    if(p.x < 0 || p.x > w) p.vx *= -1;
+                    if(p.y < 0 || p.y > h) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${rAndB},${p.op})`;
+                    ctx.fill();
+
+                    // Connect lines
+                    for(let j=i+1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        const dx = p.x - p2.x; const dy = p.y - p2.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if(dist < 150) {
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.strokeStyle = `rgba(${rAndB},${0.3 - (dist/500)})`;
+                            ctx.lineWidth = isDark ? 2 : 1.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(draw);
+            }
+            requestAnimationFrame(draw);
+        })();
+    </script>
+
+    <script>
+        /* ─── Theme toggle ─── */
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('hr_theme_mode', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('hr_theme_mode', 'dark');
+            }
+        }
+
+        /* ─── Active sidebar link ─── */
+        document.addEventListener('DOMContentLoaded', () => {
+            const path = window.location.pathname;
+            document.querySelectorAll('#sidebar-nav a').forEach(link => {
+                const href = link.getAttribute('href');
+                const dataHref = link.getAttribute('data-href');
+                
+                let target = dataHref || href;
+                // If it's the dashboard link but its data-href is '/', prevent it from matching everything
+                if (href && href.includes('/dashboard')) target = '/dashboard';
+                
+                if (target === '/') {
+                    if (path === '/' || path.includes('/dashboard')) link.classList.add('active');
+                } else if (path.includes(target)) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Notification Badge Persistence Check
+            const badge = document.querySelector('[data-notif-badge]');
+            if (badge) {
+                const count = parseInt(badge.getAttribute('data-count'), 10) || 0;
+                const seenCount = parseInt(localStorage.getItem('hr_notif_seen_count') || '0', 10);
+                if (count > 0 && count <= seenCount) {
+                    badge.style.display = 'none'; // Hide if we've already seen this exact count before
+                }
+            }
+        });
+
+        /* ─── Notification dropdown ─── */
+        function toggleNotif(e) {
+            e.stopPropagation();
+            const dd = document.getElementById('notif-dropdown');
+            const badge = document.querySelector('[data-notif-badge]');
+            const wasHidden = dd.classList.contains('hidden');
+            dd.classList.toggle('hidden');
+            
+            if (wasHidden && badge) {
+                const count = badge.getAttribute('data-count');
+                // Save the count to localStorage so it doesn't show up again on reload!
+                if(count) localStorage.setItem('hr_notif_seen_count', count);
+                
+                // Hide badge smoothly
+                badge.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                badge.style.opacity = '0';
+                badge.style.transform = 'scale(0)';
+                setTimeout(() => badge.style.display = 'none', 300);
+            }
+        }
+        document.addEventListener('click', (e) => {
+            const dd = document.getElementById('notif-dropdown');
+            const btn = document.getElementById('notif-btn');
+            if (dd && !dd.classList.contains('hidden') && !dd.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                dd.classList.add('hidden');
+            }
+        });
+
+        /* ─── Animated counter ─── */
+        function animateCounter(el, target, duration = 1200) {
+            const start = 0;
+            const step = timestamp => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(start + (target - start) * eased).toLocaleString();
+                if (progress < 1) requestAnimationFrame(step);
+            };
+            let startTime = null;
+            requestAnimationFrame(step);
+        }
+        window.animateCounter = animateCounter;
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
