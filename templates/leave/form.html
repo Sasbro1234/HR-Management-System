@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Leave | HR System{% endblock %}
+{% block header_title %}Apply for Leave{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center mb-6">
+        <a href="{% url 'leave_list' %}" class="text-gray-500 hover:text-gray-700 flex items-center transition bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">
+            <i class="ph ph-arrow-left mr-2"></i>
+            <span>Back to My Leaves</span>
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="border-b border-gray-100 px-6 py-4 bg-gray-50">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                <i class="ph ph-paper-plane-tilt text-xl mr-2 text-blue-600"></i>
+                New Leave Request
+            </h2>
+        </div>
+        
+        <form method="post" class="p-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="bg-red-50 text-red-700 p-4 rounded-lg mb-6 border border-red-100">
+                    <p class="font-bold">Errors in your submission:</p>
+                    <ul class="list-disc ml-8 mt-1 text-sm text-red-600">
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field|title }}:</strong> {{ errors|join:", " }}</li>
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Leave Type <span class="text-red-500">*</span></label>
+                {{ form.leave_type }}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Start Date <span class="text-red-500">*</span></label>
+                    {{ form.start_date }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">End Date <span class="text-red-500">*</span></label>
+                    {{ form.end_date }}
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Reason for Leave <span class="text-red-500">*</span></label>
+                {{ form.reason }}
+                <p class="text-xs text-gray-500 mt-1">Please provide a brief and clear reason for your absence.</p>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                <a href="{% url 'leave_list' %}" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-6 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-lg shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center">
+                    <i class="ph ph-paper-plane-right mr-2 text-lg"></i>
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

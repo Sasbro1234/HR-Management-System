@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave requests | HR System{% endblock %}
+{% block header_title %}Leave Management{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col md:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+    <form method="get" class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3 w-full md:w-auto">
+        <select name="status" class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <option value="">All Statuses</option>
+            <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+            <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+            <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+        </select>
+        
+        <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg transition font-medium">Filter</button>
+        {% if status_filter %}
+            <a href="{% url 'leave_list' %}" class="px-4 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition text-center">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="mt-4 md:mt-0 lg:ml-auto">
+        {% if request.user.role == 'EMPLOYEE' %}
+        <a href="{% url 'leave_apply' %}" class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition font-medium shadow-sm">
+            <i class="ph ph-calendar-plus text-lg"></i>
+            <span>Apply for Leave</span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
+                    {% if request.user.role == 'HR' %}
+                    <th class="p-4 font-medium">Employee</th>
+                    {% endif %}
+                    <th class="p-4 font-medium">Leave Type</th>
+                    <th class="p-4 font-medium">Duration</th>
+                    <th class="p-4 font-medium hidden md:table-cell">Reason</th>
+                    <th class="p-4 font-medium">Status</th>
+                    <th class="p-4 font-medium hidden sm:table-cell">Applied On</th>
+                    {% if request.user.role == 'HR' %}
+                    <th class="p-4 font-medium text-right">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for leave in leaves %}
+                <tr class="hover:bg-gray-50 transition">
+                    {% if request.user.role == 'HR' %}
+                    <td class="p-4 font-medium text-gray-800">{{ leave.employee.get_full_name|default:leave.employee.username }}</td>
+                    {% endif %}
+                    <td class="p-4">
+                        <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold">{{ leave.leave_type.name|default:"General" }}</span>
+                    </td>
+                    <td class="p-4">
+                        <div class="text-sm text-gray-800">{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</div>
+                        <div class="text-xs text-gray-500 mt-1">{{ leave.duration }} day(s)</div>
+                    </td>
+                    <td class="p-4 hidden md:table-cell text-sm text-gray-600 truncate max-w-xs" title="{{ leave.reason }}">
+                        {{ leave.reason|truncatechars:40 }}
+                    </td>
+                    <td class="p-4">
+                        {% if leave.status == 'APPROVED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="ph ph-check-circle mr-1"></i> Approved</span>
+                        {% elif leave.status == 'REJECTED' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="ph ph-x-circle mr-1"></i> Rejected</span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><i class="ph ph-clock mr-1"></i> Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 hidden sm:table-cell text-sm text-gray-500">{{ leave.applied_on|date:"M d, Y" }}</td>
+                    
+                    {% if request.user.role == 'HR' %}
+                    <td class="p-4 text-right">
+                        {% if leave.status == 'PENDING' %}
+                        <div class="flex justify-end space-x-2">
+                            <form method="post" action="{% url 'leave_approve' leave.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 p-2 rounded-lg inline-flex transition" title="Approve">
+                                    <i class="ph ph-check text-lg"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'leave_reject' leave.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 p-2 rounded-lg inline-flex transition" title="Reject">
+                                    <i class="ph ph-x text-lg"></i>
+                                </button>
+                            </form>
+                        </div>
+                        {% else %}
+                            <span class="text-xs text-gray-400">Processed by {{ leave.reviewed_by.get_full_name }}</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="{% if request.user.role == 'HR' %}7{% else %}5{% endif %}" class="p-8 text-center text-gray-500">
+                        <i class="ph ph-calendar-blank text-4xl mb-3 text-gray-300"></i>
+                        <p>No leave requests found.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if leaves.has_other_pages %}
+    <div class="bg-gray-50 px-4 py-3 border-t border-gray-100 flex items-center justify-between sm:px-6">
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm text-gray-700">
+                    Showing page <span class="font-medium">{{ leaves.number }}</span> of <span class="font-medium">{{ leaves.paginator.num_pages }}</span>
+                </p>
+            </div>
+            <div>
+                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    {% if leaves.has_previous %}
+                        <a href="?page={{ leaves.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    {% if leaves.has_next %}
+                        <a href="?page={{ leaves.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            Next
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
