@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR System | Premium HR Management</title>
+    
+    <!-- Theme Script to prevent FOUC -->
+    <script>
+        (function() {
+            try {
+                const t = localStorage.getItem('hr_theme_mode') || 'dark';
+                if (t === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            } catch(e) {}
+        })();
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] } } } }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- GSAP for cool transitions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        /* ══════ THEME VARIABLES ══════ */
+        :root {
+            --bg: #f8fafc;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --header-bg: rgba(255, 255, 255, 0.7);
+            --header-border: rgba(0, 0, 0, 0.05);
+            --card-bg: rgba(255, 255, 255, 0.6);
+            --card-hover: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(0, 0, 0, 0.05);
+            --grid-color: rgba(0, 0, 0, 0.03);
+            --glow-1: rgba(59, 130, 246, 0.15);
+            --glow-2: rgba(99, 102, 241, 0.1);
+            --glow-3: rgba(14, 165, 233, 0.1);
+        }
+        
+        .dark {
+            --bg: #050b18;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --header-bg: rgba(10, 20, 40, 0.6);
+            --header-border: rgba(59, 130, 246, 0.2);
+            --card-bg: rgba(10, 20, 40, 0.5);
+            --card-hover: rgba(15, 30, 60, 0.7);
+            --card-border: rgba(59, 130, 246, 0.15);
+            --grid-color: rgba(59, 130, 246, 0.07);
+            --glow-1: rgba(59, 130, 246, 0.2);
+            --glow-2: rgba(99, 102, 241, 0.15);
+            --glow-3: rgba(14, 165, 233, 0.12);
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            margin: 0;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* Animated background grid */
+        .grid-bg {
+            position: fixed; inset: 0; z-index: -2;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 48px 48px;
+            animation: gridMove 20s linear infinite;
+            transition: background-image 0.5s ease;
+        }
+        @keyframes gridMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(48px); }
+        }
+
+        /* Glow orbs */
+        .orb {
+            position: fixed; z-index: -1;
+            border-radius: 9999px;
+            filter: blur(100px);
+            animation: orbFloat 10s ease-in-out infinite;
+            transition: background 0.5s ease;
+        }
+        .orb-1 { width: 600px; height: 600px; background: var(--glow-1); top: -200px; left: -200px; animation-delay: 0s; }
+        .orb-2 { width: 500px; height: 500px; background: var(--glow-2); bottom: -150px; right: -150px; animation-delay: -3s; }
+        .orb-3 { width: 400px; height: 400px; background: var(--glow-3); top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: -6s; }
+        
+        @keyframes orbFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-40px) scale(1.05); }
+        }
+
+        /* Header */
+        header {
+            background: var(--header-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--header-border);
+            position: fixed; width: 100%; top: 0; z-index: 50;
+            transition: background 0.5s ease, border-color 0.5s ease;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            width: 58px; height: 32px; border-radius: 99px; cursor: pointer;
+            position: relative; border: none; outline: none;
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            transition: background 0.35s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+            margin-right: 16px;
+        }
+        .dark .theme-toggle {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        .theme-toggle-knob {
+            position: absolute; top: 3px; left: 3px;
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, background 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transform: translateX(0);
+        }
+        .dark .theme-toggle-knob {
+            transform: translateX(26px);
+            background: linear-gradient(135deg, #4f46e5, #818cf8);
+            box-shadow: 0 0 16px rgba(99,102,241,0.8), inset 0 0 4px rgba(255,255,255,0.5);
+        }
+
+        /* Buttons */
+        .cta-btn {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            position: relative; overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+        .cta-btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .cta-btn:hover::before { opacity: 1; }
+        .cta-btn:hover { box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6); transform: translateY(-2px); }
+        .cta-btn span { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; }
+
+        .secondary-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .secondary-btn:hover {
+            background: var(--card-hover);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+        .dark .secondary-btn { color: white; }
+
+        /* Logo and Text */
+        .logo-ring {
+            animation: logoPulse 4s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.3), 0 0 20px rgba(59, 130, 246, 0.2); }
+            50% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0), 0 0 40px rgba(59, 130, 246, 0.3); }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
+        }
+        .dark .glow-text {
+            text-shadow: 0 0 40px rgba(59, 130, 246, 0.5), 0 0 80px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Features Section */
+        #features-section {
+            display: none; /* hidden until button click */
+            opacity: 0;
+            width: 100%; max-w: 6xl; margin: 0 auto;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 0 1rem;
+        }
+        
+        .feature-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            transition: all 0.4s ease;
+            border-radius: 20px;
+        }
+        .feature-card:hover {
+            background: var(--card-hover);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 15px 40px var(--glow-1);
+        }
+        .feature-icon-wrapper {
+            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .feature-card:hover .feature-icon-wrapper {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        /* Back to hero button */
+        .back-btn {
+            position: absolute;
+            top: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .back-btn:hover {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background layers -->
+    <div class="grid-bg"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Navigation Header -->
+    <header class="py-4 px-6 md:px-12 flex justify-between items-center" id="header">
+        <div class="flex items-center gap-4">
+            <div class="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-blue-600/10 border border-blue-500/20 logo-ring">
+                <i class="ph ph-buildings text-2xl text-blue-500 dark:text-blue-400"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-slate-800 dark:text-white leading-tight">
+                    NovaHR<span class="text-blue-500">.</span>
+                </h1>
+                <p class="text-[0.65rem] font-bold tracking-[0.05em] text-slate-500 dark:text-slate-400 leading-tight">
+                    PREMIUM WORKFORCE<br/>MANAGEMENT
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode" aria-label="Toggle theme">
+                <div class="theme-toggle-knob">
+                    <i class="ph ph-moon dark:block hidden" style="font-size:12px;color:#fff;"></i>
+                    <i class="ph ph-sun dark:hidden block" style="font-size:12px;color:#fff;"></i>
+                </div>
+            </button>
+            <a href="{% url 'login' %}" class="secondary-btn px-6 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2">
+                Sign In <i class="ph ph-arrow-right"></i>
+            </a>
+        </div>
+    </header>
+
+    <div style="position: relative; width: 100vw; height: 100vh; overflow: hidden; perspective: 1000px;">
+        
+        <!-- MAIN VIEW (HERO) -->
+        <main id="hero-section" class="absolute inset-0 flex flex-col justify-center items-center px-4 text-center">
+            
+            <div class="hero-badge inline-block px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-300 text-xs font-semibold tracking-widest uppercase mb-8">
+                The Future of Work is Here
+            </div>
+
+            <h1 class="hero-title text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+                Elevate Your <br />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 glow-text">Human Resources</span>
+            </h1>
+
+            <p class="hero-desc text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+                Empower your workforce with our premium human resource management suite. Streamline payroll, manage attendance seamlessly, and elevate your entire team's productivity in one modern platform.
+            </p>
+
+            <div class="hero-btns flex flex-col sm:flex-row gap-4 justify-center items-center w-full">
+                <a href="{% url 'login' %}" class="cta-btn w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-base tracking-wide">
+                    <span><i class="ph ph-sign-in text-xl shrink-0"></i> Sign In to Workspace</span>
+                </a>
+                <button onclick="showFeatures()" class="secondary-btn w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-base tracking-wide flex justify-center items-center gap-2">
+                    <span>Learn More <i class="ph ph-sparkle text-blue-500"></i></span>
+                </button>
+            </div>
+            
+            <div class="hero-footer absolute bottom-8 text-slate-500 text-sm font-medium">
+                &copy; 2026 NovaHR. All rights reserved.
+            </div>
+        </main>
+
+
+        <!-- FEATURES VIEW -->
+        <div id="features-section">
+            
+            <div onclick="hideFeatures()" class="back-btn flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                    <i class="ph ph-caret-left"></i>
+                </div>
+                Back to Welcome
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-4 mx-4">
+                
+                <div class="feature-card f-card-1 p-8 text-left flex flex-col items-start border-t-4 border-t-blue-500">
+                    <div class="feature-icon-wrapper w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 border border-blue-200 dark:border-blue-500/20 shadow-lg shadow-blue-500/10">
+                        <i class="ph ph-users-three text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-3 tracking-tight">Employee Directory</h3>
+                    <p class="text-[0.95rem] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Centralized database for all personnel information with enterprise-grade security and role-based access.</p>
+                </div>
+
+                <div class="feature-card f-card-2 p-8 text-left flex flex-col items-start border-t-4 border-t-indigo-500">
+                    <div class="feature-icon-wrapper w-14 h-14 rounded-2xl bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-6 border border-indigo-200 dark:border-indigo-500/20 shadow-lg shadow-indigo-500/10">
+                        <i class="ph ph-calendar-check text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-3 tracking-tight">Leave Management</h3>
+                    <p class="text-[0.95rem] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Automated workflows for leave requests, approvals, and balance tracking with smart notifications.</p>
+                </div>
+
+                <div class="feature-card f-card-3 p-8 text-left flex flex-col items-start border-t-4 border-t-purple-500">
+                    <div class="feature-icon-wrapper w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 border border-purple-200 dark:border-purple-500/20 shadow-lg shadow-purple-500/10">
+                        <i class="ph ph-coins text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-3 tracking-tight">Payroll Processing</h3>
+                    <p class="text-[0.95rem] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Accurate, timely salary generation integrated seamlessly with attendance and leave records.</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- GSAP Initial Animations -->
+    <script>
+        document.addEventListener("DOMContentLoaded", (event) => {
+            gsap.fromTo("#header", { y: -100, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power4.out" });
+            
+            const tl = gsap.timeline();
+            tl.fromTo(".hero-badge", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "back.out(1.7)" })
+              .fromTo(".hero-title", { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: "power3.out" }, "-=0.6")
+              .fromTo(".hero-desc", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, "-=0.6")
+              .fromTo(".hero-btns", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "back.out(1.5)" }, "-=0.6")
+              .fromTo(".hero-footer", { opacity: 0 }, { opacity: 1, duration: 1 }, "-=0.2");
+        });
+
+        function showFeatures() {
+            // Cool 3D transition out for Hero
+            gsap.to("#hero-section", { 
+                z: -500, opacity: 0, y: -100, rotationX: 10,
+                duration: 1.2, ease: "power4.inOut",
+                onComplete: () => { document.getElementById('hero-section').style.display = 'none'; }
+            });
+
+            const feats = document.getElementById('features-section');
+            feats.style.display = 'block';
+            
+            // Staggered cinematic entry for features
+            gsap.fromTo(feats, { opacity: 0 }, { opacity: 1, duration: 0.5, delay: 0.6 });
+            
+            gsap.fromTo(".f-card-1", 
+                { x: -100, y: 50, opacity: 0, rotationY: 20 }, 
+                { x: 0, y: 0, opacity: 1, rotationY: 0, duration: 1.2, delay: 0.8, ease: "expo.out" });
+                
+            gsap.fromTo(".f-card-2", 
+                { y: 100, opacity: 0, scale: 0.8 }, 
+                { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.9, ease: "expo.out" });
+                
+            gsap.fromTo(".f-card-3", 
+                { x: 100, y: 50, opacity: 0, rotationY: -20 }, 
+                { x: 0, y: 0, opacity: 1, rotationY: 0, duration: 1.2, delay: 1.0, ease: "expo.out" });
+                
+            gsap.fromTo(".back-btn", { y: -20, opacity: 0 }, { y: 0, opacity: 0.7, duration: 0.8, delay: 1.4, ease: "back.out(2)" });
+        }
+
+        function hideFeatures() {
+            // Exit features
+            gsap.to(".f-card-1", { x: -50, opacity: 0, duration: 0.6, ease: "power2.in" });
+            gsap.to(".f-card-2", { y: 50, opacity: 0, duration: 0.6, delay: 0.1, ease: "power2.in" });
+            gsap.to(".f-card-3", { x: 50, opacity: 0, duration: 0.6, delay: 0.2, ease: "power2.in" });
+            gsap.to(".back-btn", { opacity: 0, duration: 0.3 });
+            
+            gsap.to("#features-section", {
+                opacity: 0, duration: 0.6, delay: 0.4,
+                onComplete: () => { document.getElementById('features-section').style.display = 'none'; }
+            });
+
+            // Re-enter Hero
+            const hero = document.getElementById('hero-section');
+            hero.style.display = 'flex';
+            gsap.fromTo(hero, 
+                { z: 300, opacity: 0, y: 100, rotationX: -10 },
+                { z: 0, opacity: 1, y: 0, rotationX: 0, duration: 1.4, delay: 0.5, ease: "power4.out" }
+            );
+        }
+
+        /* ─── Theme toggle script ─── */
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('hr_theme_mode', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('hr_theme_mode', 'dark');
+            }
+        }
+    </script>
+</body>
+</html>
