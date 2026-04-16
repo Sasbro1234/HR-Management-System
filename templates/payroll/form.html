@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | HR System{% endblock %}
+{% block header_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center mb-6">
+        <a href="{% url 'payroll_list' %}" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center transition bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-3 py-1.5 rounded-lg">
+            <i class="ph ph-arrow-left mr-2"></i>
+            <span>Back to Payroll</span>
+        </a>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="border-b border-gray-100 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800/80">
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                <i class="ph ph-money text-xl text-purple-500"></i>
+                Salary Record
+            </h2>
+        </div>
+
+        <form method="post" class="p-6 space-y-5">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-4 rounded-xl border border-red-100 dark:border-red-800 text-sm">
+                    <ul class="list-disc ml-4 space-y-1">
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field|title }}:</strong> {{ errors|join:", " }}</li>
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <!-- Employee -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                    Employee <span class="text-red-500">*</span>
+                </label>
+                {{ form.employee }}
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                    <i class="ph ph-magic-wand mr-1"></i>Selecting an employee auto-fills their base salary below.
+                </p>
+            </div>
+
+            <!-- Month / Year -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Month <span class="text-red-500">*</span></label>
+                    {{ form.month }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Year <span class="text-red-500">*</span></label>
+                    {{ form.year }}
+                </div>
+            </div>
+
+            <!-- Salary Fields -->
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+                        Basic Salary (LKR) <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.basic_salary }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Bonus (LKR)</label>
+                    {{ form.bonus }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Deductions (LKR)</label>
+                    {{ form.deductions }}
+                </div>
+            </div>
+
+            <!-- Net Preview -->
+            <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border border-purple-100 dark:border-purple-800 flex items-center justify-between">
+                <span class="text-sm font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                    <i class="ph ph-calculator text-base"></i>
+                    Estimated Net Salary
+                </span>
+                <span id="net-preview" class="text-lg font-bold text-purple-600 dark:text-purple-400">Rs. 0.00</span>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                <a href="{% url 'payroll_list' %}" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 font-bold py-2.5 px-6 rounded-xl transition">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-8 rounded-xl shadow-sm transition flex items-center gap-2">
+                    <i class="ph ph-floppy-disk text-lg"></i> Save Record
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    // salary_map: {user_id: base_salary}
+    const salaryMap = {{ salary_map|default:"{}"|safe }};
+
+    const empSelect   = document.getElementById('id_employee');
+    const basicInput  = document.getElementById('id_basic_salary');
+    const bonusInput  = document.getElementById('id_bonus');
+    const deductInput = document.getElementById('id_deductions');
+    const netPreview  = document.getElementById('net-preview');
+
+    function calcNet() {
+        const b = parseFloat(basicInput.value)  || 0;
+        const bonus = parseFloat(bonusInput.value) || 0;
+        const d = parseFloat(deductInput.value) || 0;
+        const net = b + bonus - d;
+        netPreview.textContent = 'Rs. ' + net.toLocaleString('en-LK', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    // Auto-fill basic salary from employee selection
+    if (empSelect) {
+        empSelect.addEventListener('change', function() {
+            const uid = this.value;
+            if (salaryMap[uid] !== undefined) {
+                basicInput.value = salaryMap[uid];
+                calcNet();
+            }
+        });
+    }
+
+    // Live net preview
+    [basicInput, bonusInput, deductInput].forEach(el => {
+        if (el) el.addEventListener('input', calcNet);
+    });
+
+    // Init
+    calcNet();
+})();
+</script>
+{% endblock %}
