@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | HR System{% endblock %}
+{% block header_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="flex items-center mb-6">
+        <a href="{% url 'employee_list' %}" class="text-gray-500 hover:text-gray-700 flex items-center transition bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">
+            <i class="ph ph-arrow-left mr-2"></i>
+            <span>Back to Employees</span>
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="border-b border-gray-100 px-6 py-4 bg-gray-50">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center">
+                <i class="ph ph-user-circle-plus text-xl mr-2 text-blue-600"></i>
+                Employee Information
+            </h2>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="p-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="bg-red-50 text-red-700 p-4 rounded-lg mb-6 border border-red-100">
+                    <p class="font-bold flex items-center"><i class="ph ph-warning-circle mr-2 text-lg"></i> Please correct the following errors:</p>
+                    <ul class="list-disc ml-8 mt-2 text-sm text-red-600">
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field|title }}:</strong> {{ errors|join:", " }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <!-- User Account Details -->
+                <div class="col-span-1 md:col-span-2 text-gray-800 font-semibold border-b pb-2 mb-2 text-sm uppercase tracking-wider">Account Details</div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">First Name <span class="text-red-500">*</span></label>
+                    {{ form.first_name }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Last Name <span class="text-red-500">*</span></label>
+                    {{ form.last_name }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Username <span class="text-red-500">*</span></label>
+                    {{ form.username }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Email Address <span class="text-red-500">*</span></label>
+                    {{ form.email }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Password {% if form.instance.pk %}<span class="text-xs text-gray-500 font-normal">(Leave blank to keep current)</span>{% else %}<span class="text-red-500">*</span>{% endif %}</label>
+                    {{ form.password }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Profile Picture</label>
+                    <div class="flex items-center space-x-4">
+                        {% if form.instance.user.profile_picture %}
+                            <img src="{{ form.instance.user.profile_picture.url }}" class="w-12 h-12 rounded-full object-cover">
+                        {% endif %}
+                        <div class="w-full">{{ form.profile_picture }}</div>
+                    </div>
+                </div>
+
+                <!-- HR Details -->
+                <div class="col-span-1 md:col-span-2 text-gray-800 font-semibold border-b pb-2 mt-4 mb-2 text-sm uppercase tracking-wider">Employment Details</div>
+
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Department</label>
+                    {{ form.department }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Designation <span class="text-red-500">*</span></label>
+                    {{ form.designation }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Joining Date <span class="text-red-500">*</span></label>
+                    {{ form.joining_date }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Base Salary (LKR) <span class="text-red-500">*</span></label>
+                    {{ form.base_salary }}
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Phone Number <span class="text-red-500">*</span></label>
+                    {{ form.phone_number }}
+                </div>
+                
+                <div class="col-span-1 md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Address</label>
+                    {{ form.address }}
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                <a href="{% url 'employee_list' %}" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2.5 px-6 rounded-lg transition focus:outline-none focus:ring-2 focus:ring-gray-200">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-lg shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center">
+                    <i class="ph ph-floppy-disk mr-2 text-lg"></i>
+                    Save Employee
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
