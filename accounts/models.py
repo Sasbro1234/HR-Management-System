@@ -17,4 +17,4 @@ class User(AbstractUser):
         return self.role == 'EMPLOYEE'
 
     def __str__(self):
-        return f"{self.username} - {self.get_role_display()}"
+        return f"{self.username} - {self.get_role_display()} : {self.email}"
