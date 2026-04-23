@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from datetime import time
 from django.utils import timezone
 from django.core.paginator import Paginator
 from .models import Attendance
@@ -44,6 +45,13 @@ def punch_in(request):
             date=today,
             defaults={'clock_in': now, 'status': 'PRESENT'}
         )
+        if current_time > time(9, 0):   #checking if checked in after 9#
+            attendance.is_late = True
+        else:
+            attendance.is_late = False
+
+        attendance.save()
+        
         if created:
             messages.success(request, f"Punched in successfully at {now.strftime('%I:%M %p')}")
         else:
