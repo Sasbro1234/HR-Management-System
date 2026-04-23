@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 class Payroll(models.Model):
     MONTH_CHOICES = (
@@ -24,6 +25,21 @@ class Payroll(models.Model):
     @property
     def net_salary(self):
         return self.basic_salary + self.bonus - self.deductions
+
+    def clean(self):
+        errors = {}
+
+        if self.basic_salary <= 0:
+            errors['basic_salary'] = "Basic salary must be greater than zero"
+
+        if self.bonus < 0:
+            errors['bonus'] = "Bonus cannot be negative"
+
+        if self.deductions < 0:
+            errors['deductions'] = "Deductions cannot be negative"
+
+        if errors:
+            raise ValidationError(errors)
 
     def __str__(self):
         return f"{self.employee.username} - {self.get_month_display()} {self.year}"
