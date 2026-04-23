@@ -18,6 +18,7 @@
         /* Animated background grid */
         .grid-bg {
             position: absolute; inset: 0;
+            pointer-events: none;/*New added*/
             background-image:
                 linear-gradient(rgba(59, 130, 246, 0.07) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(59, 130, 246, 0.07) 1px, transparent 1px);
@@ -32,6 +33,7 @@
         /* Glow orbs */
         .orb {
             position: absolute;
+            pointer-events: none;/*New added*/
             border-radius: 9999px;
             filter: blur(80px);
             animation: orbFloat 8s ease-in-out infinite;
@@ -181,6 +183,13 @@
                     Sign In to Dashboard
                 </span>
             </button>
+
+            <!--Password Reset-->
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="{% url 'password_reset' %}" style="color: #007bff; text-decoration: none; position: relative; z-index: 20;">
+                    Forgot Password?
+                </a>
+            </div>
         </form>
 
         <div class="glow-line mt-7 mb-5"></div>

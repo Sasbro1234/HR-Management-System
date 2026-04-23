@@ -91,3 +91,6 @@ AUTH_USER_MODEL = 'accounts.User'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'landing_page'
+
+#Adding password reset option
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
