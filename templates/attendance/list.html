@@ -83,7 +83,7 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 {% for record in records %}
-                <tr class="hover:bg-gray-50 transition">
+                <tr class="hover:bg-gray-50 transition" {% if record.is_late %}style="background-color: #ffe6e6;"{% endif %}>
                     {% if request.user.role == 'HR' %}
                     <td class="p-4 font-medium text-gray-800">
                         {{ record.employee.get_full_name|default:record.employee.username }}
