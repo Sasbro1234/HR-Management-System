@@ -14,6 +14,7 @@ class Attendance(models.Model):
     clock_in = models.TimeField(null=True, blank=True)
     clock_out = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PRESENT')
+    is_late = models.BooleanField(default=False)    
     notes = models.TextField(blank=True, null=True)
 
     class Meta:
