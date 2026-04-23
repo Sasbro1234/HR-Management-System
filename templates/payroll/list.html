@@ -40,35 +40,61 @@
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
                     {% if request.user.role == 'HR' %}
-                    <th class="p-4 font-medium">Employee</th>
+                    <th class="p-4 font-medium text-center">Employee</th>
                     {% endif %}
-                    <th class="p-4 font-medium">Period</th>
-                    <th class="p-4 font-medium text-right">Basic Salary</th>
-                    <th class="p-4 font-medium text-right hidden sm:table-cell">Bonus</th>
-                    <th class="p-4 font-medium text-right hidden sm:table-cell">Deductions</th>
-                    <th class="p-4 font-medium text-right">Net Salary</th>
+                    <th class="p-4 font-medium text-center">Period</th>
+                    <th class="p-4 font-medium text-center">Basic Salary</th>
+                    <th class="p-4 font-medium text-center hidden sm:table-cell">Bonus</th>
+                    <th class="p-4 font-medium text-center hidden sm:table-cell">Deductions</th>
+
+                    <!-- NEW TAX COLUMN -->
+                    <th class="p-4 font-medium text-center">Tax - 5%</th>
+
+                    <th class="p-4 font-medium text-center">Net Salary</th>
+
                     {% if request.user.role == 'HR' %}
-                    <th class="p-4 font-medium text-right">Actions</th>
+                    <th class="p-4 font-medium text-center">Actions</th>
                     {% endif %}
                 </tr>
             </thead>
+
             <tbody class="divide-y divide-gray-100">
                 {% for p in payrolls %}
                 <tr class="hover:bg-gray-50 transition">
+                    
                     {% if request.user.role == 'HR' %}
                     <td class="p-4">
                         <div class="font-medium text-gray-800">{{ p.employee.get_full_name|default:p.employee.username }}</div>
                         <div class="text-xs text-gray-500">{{ p.employee.email }}</div>
                     </td>
                     {% endif %}
+
                     <td class="p-4">
-                        <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded font-semibold text-sm">{{ p.get_month_display }} {{ p.year }}</span>
+                        <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded font-semibold text-sm">
+                            {{ p.get_month_display }} {{ p.year }}
+                        </span>
                     </td>
+
                     <td class="p-4 text-right text-gray-600">Rs. {{ p.basic_salary }}</td>
-                    <td class="p-4 text-right text-green-600 hidden sm:table-cell">+Rs. {{ p.bonus }}</td>
-                    <td class="p-4 text-right text-red-500 hidden sm:table-cell">-Rs. {{ p.deductions }}</td>
-                    <td class="p-4 text-right font-bold text-gray-800">Rs. {{ p.net_salary }}</td>
-                    
+
+                    <td class="p-4 text-right text-green-600 hidden sm:table-cell">
+                        +Rs. {{ p.bonus }}
+                    </td>
+
+                    <td class="p-4 text-right text-red-500 hidden sm:table-cell">
+                        -Rs. {{ p.deductions }}
+                    </td>
+
+                    <!-- TAX DISPLAY -->
+                    <td class="p-4 text-right text-yellow-600">
+                        -Rs. {{ p.tax_amount|floatformat:2 }}
+                    </td>
+
+                    <!-- NET SALARY (CORRECT LOGIC) -->
+                    <td class="p-4 text-right font-bold text-gray-800">
+                        Rs. {{ p.net_salary_after_tax|floatformat:2|default:p.net_salary }}
+                    </td>
+
                     {% if request.user.role == 'HR' %}
                     <td class="p-4 text-right space-x-2">
                         <a href="{% url 'payroll_edit' p.id %}" class="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg inline-flex transition">
@@ -79,16 +105,19 @@
                         </a>
                     </td>
                     {% endif %}
+
                 </tr>
+
                 {% empty %}
                 <tr>
-                    <td colspan="{% if request.user.role == 'HR' %}7{% else %}6{% endif %}" class="p-8 text-center text-gray-500">
+                    <td colspan="{% if request.user.role == 'HR' %}8{% else %}7{% endif %}" class="p-8 text-center text-gray-500">
                         <i class="ph ph-wallet text-4xl mb-3 text-gray-300"></i>
                         <p>No payroll records found.</p>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
+
         </table>
     </div>
 </div>
