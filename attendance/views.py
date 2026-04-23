@@ -45,10 +45,13 @@ def punch_in(request):
             date=today,
             defaults={'clock_in': now, 'status': 'PRESENT'}
         )
-        if now > time(9, 0):   #checking if checked in after 9#
+
+        current_time = now
+        
+
+        if current_time > time(9, 0):
             attendance.is_late = True
-        else:
-            attendance.is_late = False
+        
 
         attendance.save()
         
