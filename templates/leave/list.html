@@ -35,15 +35,15 @@
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
                     {% if request.user.role == 'HR' %}
-                    <th class="p-4 font-medium">Employee</th>
+                    <th class="p-4 font-medium text-center">Employee</th>
                     {% endif %}
-                    <th class="p-4 font-medium">Leave Type</th>
-                    <th class="p-4 font-medium">Duration</th>
-                    <th class="p-4 font-medium hidden md:table-cell">Reason</th>
-                    <th class="p-4 font-medium">Status</th>
-                    <th class="p-4 font-medium hidden sm:table-cell">Applied On</th>
+                    <th class="p-4 font-medium text-center">Leave Type</th>
+                    <th class="p-4 font-medium text-center">Duration</th>
+                    <th class="p-4 font-medium hidden md:table-cell text-center">Reason</th>
+                    <th class="p-4 font-medium text-center">Status</th>
+                    <th class="p-4 font-medium hidden sm:table-cell text-center">Applied On</th>
                     {% if request.user.role == 'HR' %}
-                    <th class="p-4 font-medium text-right">Actions</th>
+                    <th class="p-4 font-medium text-center">Actions</th>
                     {% endif %}
                 </tr>
             </thead>

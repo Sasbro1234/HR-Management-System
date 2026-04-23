@@ -20,6 +20,21 @@ def payroll_list(request):
     paginator = Paginator(payrolls, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    #Adding tax logic
+    for p in page_obj:
+        tax_deduction = float(p.basic_salary) * 0.05
+        
+        #store tax separately
+        p.tax_amount = tax_deduction
+        
+        #correct net salary formula
+        p.net_salary_after_tax = (
+            float(p.basic_salary)
+            - tax_deduction
+            + float(p.bonus)
+            - float(p.deductions)
+        )
     
     # Get distinct years for filter
     years = Payroll.objects.values_list('year', flat=True).distinct().order_by('-year')
@@ -114,7 +129,8 @@ def export_payroll_pdf(request):
     elements.append(Paragraph("Payroll Report", styles['Title']))
     elements.append(Spacer(1, 12))
     
-    data = [['Employee', 'Period', 'Basic', 'Bonus', 'Deductions', 'Net Salary']]
+    # UPDATED HEADER (Added Tax column)
+    data = [['Employee', 'Period', 'Basic', 'Bonus', 'Deductions', 'Tax', 'Net Salary']]
     
     if request.user.role == 'HR':
         payrolls = Payroll.objects.select_related('employee').all().order_by('-year', '-month')
@@ -122,16 +138,30 @@ def export_payroll_pdf(request):
         payrolls = Payroll.objects.filter(employee=request.user).order_by('-year', '-month')
         
     for p in payrolls:
+        # TAX CALCULATION
+        tax_deduction = float(p.basic_salary) * 0.05
+
+        # CORRECT NET SALARY FORMULA
+        net_salary = (
+            float(p.basic_salary)
+            - tax_deduction
+            + float(p.bonus)
+            - float(p.deductions)
+        )
+
         data.append([
             p.employee.get_full_name() or p.employee.username,
             f"{p.get_month_display()} {p.year}",
             f"Rs. {p.basic_salary}",
             f"Rs. {p.bonus}",
             f"Rs. {p.deductions}",
-            f"Rs. {p.net_salary}"
+            f"Rs. {tax_deduction:.2f}",     # Tax column
+            f"Rs. {net_salary:.2f}"         # Correct net salary
         ])
         
-    t = Table(data, colWidths=[120, 80, 70, 70, 80, 80])
+    # Adjusted column widths (added one more column)
+    t = Table(data, colWidths=[110, 80, 65, 65, 75, 65, 80])
+
     t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -141,6 +171,7 @@ def export_payroll_pdf(request):
         ('BACKGROUND', (0, 1), (-1, -1), colors.lightgrey),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
+
     elements.append(t)
     doc.build(elements)
     

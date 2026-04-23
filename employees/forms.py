@@ -22,6 +22,10 @@ class EmployeeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user_instance = kwargs.pop('user_instance', None)
         super().__init__(*args, **kwargs)
+
+        # MAKE PHONE NUMBER REQUIRED
+        self.fields['phone_number'].required = True 
+
         if self.user_instance:
             self.fields['first_name'].initial = self.user_instance.first_name
             self.fields['last_name'].initial = self.user_instance.last_name
