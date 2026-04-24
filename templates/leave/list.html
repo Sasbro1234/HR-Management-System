@@ -116,9 +116,12 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="{% if request.user.role == 'HR' %}7{% else %}5{% endif %}" class="p-8 text-center text-gray-500">
-                        <i class="ph ph-calendar-blank text-4xl mb-3 text-gray-300"></i>
-                        <p>No leave requests found.</p>
+                    <td colspan="{% if request.user.role == 'HR' %}7{% else %}5{% endif %}" class="p-12 text-center text-gray-500 bg-gray-50/50">
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="ph ph-folder-open text-5xl mb-3 text-gray-300"></i>
+                            <p class="text-base font-medium text-gray-600">No leave requests found</p>
+                            <p class="text-sm text-gray-400 mt-1">There are currently no leave records to display.</p>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
