@@ -32,3 +32,8 @@ class LeaveRequest(models.Model):
         if self.start_date and self.end_date:
             return (self.end_date - self.start_date).days + 1
         return 0
+
+    class Meta:
+        verbose_name = 'Leave Request'
+        verbose_name_plural = 'Leave Requests'
+        ordering = ['-applied_on']
