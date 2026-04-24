@@ -834,8 +834,7 @@
                     <button class="icon-btn" onclick="toggleNotif(event)" id="notif-btn" aria-label="Notifications">
                         <i class="ph ph-bell"></i>
                         <span data-notif-badge data-count="{{ notif_count }}"
-                            style="{% if notif_count <= 0 %}display:none;{% endif %}position:absolute;top:6px;right:6px;height:18px;min-width:18px;border-radius:99px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 10px rgba(239,68,68,0.6);animation:pulse 2s infinite;border:2px solid var(--bg-header);">{{
-                            notif_count }}</span>
+                            style="{% if notif_count <= 0 %}display:none;{% endif %}position:absolute;top:6px;right:6px;height:18px;min-width:18px;border-radius:99px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 10px rgba(239,68,68,0.6);animation:pulse 2s infinite;border:2px solid var(--bg-header);">{{ notif_count }}</span>
                     </button>
                     {% endwith %}
                     {% else %}
@@ -843,8 +842,7 @@
                     <button class="icon-btn" onclick="toggleNotif(event)" id="notif-btn" aria-label="Notifications">
                         <i class="ph ph-bell"></i>
                         <span data-notif-badge data-count="{{ notif_count }}"
-                            style="{% if notif_count <= 0 %}display:none;{% endif %}position:absolute;top:6px;right:6px;height:18px;min-width:18px;border-radius:99px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse 2s infinite;border:2px solid var(--bg-header);">{{
-                            notif_count }}</span>
+                            style="{% if notif_count <= 0 %}display:none;{% endif %}position:absolute;top:6px;right:6px;height:18px;min-width:18px;border-radius:99px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 0 10px rgba(59,130,246,0.6);animation:pulse 2s infinite;border:2px solid var(--bg-header);">{{ notif_count }}</span>
                     </button>
                     {% endwith %}
                     {% endif %}
@@ -867,10 +865,8 @@
                                     <i class="ph ph-calendar" style="font-size:1.1rem;"></i>
                                 </div>
                                 <div>
-                                    <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">{{
-                                        leave.employee.get_full_name|default:leave.employee.username }}</div>
-                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{
-                                        leave.leave_type.name }} &middot; {{ leave.duration }}d &middot; Pending</div>
+                                    <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">{{ leave.employee.get_full_name|default:leave.employee.username }}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{ leave.leave_type.name }} &middot; {{ leave.duration }}d &middot; Pending</div>
                                 </div>
                             </a>
                             {% empty %}
@@ -891,8 +887,7 @@
                                 <div>
                                     <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">Leave
                                         Approved</div>
-                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{
-                                        leave.leave_type.name }} &middot; {{ leave.start_date|date:"M d" }}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{ leave.leave_type.name }} &middot; {{ leave.start_date|date:"M d" }}</div>
                                 </div>
                             </a>
                             {% endfor %}
@@ -906,8 +901,7 @@
                                 <div>
                                     <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">Leave
                                         Rejected</div>
-                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{
-                                        leave.leave_type.name }} &middot; {{ leave.start_date|date:"M d" }}</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">{{ leave.leave_type.name }} &middot; {{ leave.start_date|date:"M d" }}</div>
                                 </div>
                             </a>
                             {% endfor %}
@@ -921,8 +915,7 @@
                                 <div>
                                     <div style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">Salary
                                         Processed</div>
-                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Payslip for {{
-                                        payroll.month }}/{{ payroll.year }} ready</div>
+                                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">Payslip for {{ payroll.month }}/{{ payroll.year }} ready</div>
                                 </div>
                             </a>
                             {% endfor %}
@@ -952,8 +945,7 @@
                         {% endif %}
                     </div>
                     <div style="text-align:left;display:none;" class="md:block pr-2">
-                        <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);line-height:1.2;">{{
-                            request.user.get_full_name|default:request.user.username }}</div>
+                        <div style="font-size:0.9rem;font-weight:700;color:var(--text-primary);line-height:1.2;">{{ request.user.get_full_name|default:request.user.username }}</div>
                         <div
                             style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);margin-top:2px;">
                             {{ request.user.get_role_display }}</div>
