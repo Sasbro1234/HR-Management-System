@@ -82,11 +82,11 @@
                     </td>
                     <td class="p-4">
                         {% if leave.status == 'REJECTED' %}
-                            <span style="color: red; font-weight: bold;">{{ leave.status }}</span>
+                            <span class="bg-red-50 border border-red-200 text-red-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ leave.status }}</span>
                         {% elif leave.status == 'APPROVED' %}
-                            <span style="color: green; font-weight: bold;">{{ leave.status }}</span>
+                            <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ leave.status }}</span>
                         {% else %}
-                            <span style="color: orange; font-weight: bold;">{{ leave.status }}</span>
+                            <span class="bg-amber-50 border border-amber-200 text-amber-700 px-3 py-1 rounded-full text-xs font-bold tracking-wide shadow-sm">{{ leave.status }}</span>
                         {% endif %}
                     </td>
                     <td class="p-4 hidden sm:table-cell text-sm text-gray-500">{{ leave.applied_on|date:"M d, Y" }}</td>
