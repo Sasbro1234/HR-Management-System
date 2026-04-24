@@ -13,18 +13,18 @@ A fully-featured, modern HR Management System built with Django. This system han
 
 ##  Features
 
-- ** Built-in Roles & Authentication**
+- **Built-in Roles & Authentication**
   - **HR Manager (Admin):** Full access to create employees, approve leaves, create payroll, and monitor attendance.
   - **Employee:** Can view their profile, request leaves, view their salary history, and clock in/out for attendance.
-- ** Employee Management**
+- **Employee Management**
   - Comprehensive employee details including personal, role, department, and contact info.
-- ** Attendance Tracking**
+- **Attendance Tracking**
   - Web-based clock-in/clock-out functionality for employees.
   - Timesheet logs accessible by HR.
-- ** Leave Management**
+- **Leave Management**
   - Employees can request leaves with specific dates and reasons.
   - HR Manager can approve or reject leaves with status tracking.
-- ** Payroll System**
+- **Payroll System**
   - Generates payroll/salary structures dynamically base on base salaries and deductions.
 
 ---
