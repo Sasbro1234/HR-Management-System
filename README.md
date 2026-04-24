@@ -92,3 +92,7 @@ This script will construct the primary `admin` and `employee` entities automatic
 ---
 **Project Structure Notes:** 
 Static files like CSS & images have been implemented directly within HTML via internal-styling for maximum portability without external caching dependencies. File uploads are stored strictly inside the local `/media/` folder.
+
+## Admin Access
+To create an admin account, run: `python manage.py createsuperuser`
+Then access the admin panel at `http://127.0.0.1:8000/admin/`.
