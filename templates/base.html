@@ -725,6 +725,42 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        /* MOBILE RESPONSIVENESS */
+        .mobile-menu-btn { display: none; }
+        .mobile-overlay { display: none; }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                top: 0; bottom: 0;
+                left: -320px;
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 50;
+                box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+            }
+            .sidebar.mobile-open { left: 0; }
+            .mobile-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(0,0,0,0.4);
+                backdrop-filter: blur(4px);
+                z-index: 40;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+            .mobile-overlay.mobile-open {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .mobile-menu-btn { display: flex !important; }
+            .topbar { padding: 0 16px; }
+            .topbar-title { font-size: 1.2rem; }
+            main#main-content { padding: 20px 16px !important; }
+            .stat-card, .glass-card, .chart-card { padding: 20px !important; }
+            .profile-btn .md\:block { display: none !important; }
+        }
+
         /* SCROLLBAR */
         ::-webkit-scrollbar {
             width: 6px;
@@ -758,8 +794,11 @@
     <canvas id="bg-canvas"></canvas>
     <div class="dark-bg-canvas" aria-hidden="true"></div>
 
+    <!-- MOBILE OVERLAY -->
+    <div class="mobile-overlay" id="mobile-overlay" onclick="toggleSidebar()"></div>
+
     <!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <h1 style="font-size: 1.6rem; line-height: 1.1;">HR System<span style="color:var(--accent-2)">.</span></h1>
             <p
@@ -815,7 +854,12 @@
 
         <!-- TOP BAR -->
         <header class="topbar">
-            <div class="topbar-title">{% block header_title %}Overview{% endblock %}</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="icon-btn mobile-menu-btn" onclick="toggleSidebar()">
+                    <i class="ph ph-list"></i>
+                </button>
+                <div class="topbar-title">{% block header_title %}Overview{% endblock %}</div>
+            </div>
 
             <div class="topbar-actions">
                 <!-- Theme Toggle -->
@@ -1042,6 +1086,21 @@
     </script>
 
     <script>
+        /* ─── Mobile Sidebar ─── */
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+            const overlay = document.getElementById('mobile-overlay');
+            if (overlay.classList.contains('mobile-open')) {
+                overlay.classList.remove('mobile-open');
+                setTimeout(() => { if (!overlay.classList.contains('mobile-open')) overlay.style.display = 'none'; }, 300);
+            } else {
+                overlay.style.display = 'block';
+                // Trigger reflow
+                void overlay.offsetWidth;
+                overlay.classList.add('mobile-open');
+            }
+        }
+
         /* ─── Theme toggle ─── */
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
@@ -1053,6 +1112,21 @@
                 localStorage.setItem('hr_theme_mode', 'dark');
             }
         }
+
+        /* ─── Wrap tables for mobile ─── */
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('table').forEach(table => {
+                const parent = table.parentElement;
+                if (parent && !parent.classList.contains('overflow-x-auto') && parent.style.overflowX !== 'auto') {
+                    const wrapper = document.createElement('div');
+                    wrapper.style.overflowX = 'auto';
+                    wrapper.style.width = '100%';
+                    wrapper.style.WebkitOverflowScrolling = 'touch';
+                    table.parentNode.insertBefore(wrapper, table);
+                    wrapper.appendChild(table);
+                }
+            });
+        });
 
         /* ─── Active sidebar link ─── */
         document.addEventListener('DOMContentLoaded', () => {
