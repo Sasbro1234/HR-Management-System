@@ -191,8 +191,10 @@
             display: none; /* hidden until button click */
             opacity: 0;
             width: 100%; max-w: 6xl; margin: 0 auto;
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            padding: 0 1rem;
+            position: absolute; inset: 0;
+            padding: 100px 1rem 40px;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         .feature-card {
@@ -217,17 +219,17 @@
 
         /* Back to hero button */
         .back-btn {
-            position: absolute;
-            top: -60px;
-            left: 50%;
-            transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem auto;
             cursor: pointer;
             opacity: 0.7;
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
         .back-btn:hover {
             opacity: 1;
-            transform: translateX(-50%) translateY(-3px);
+            transform: translateY(-3px) !important;
         }
     </style>
 </head>
@@ -271,12 +273,12 @@
                 The Future of Work is Here
             </div>
 
-            <h1 class="hero-title text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+            <h1 class="hero-title text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
                 Elevate Your <br />
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-500 glow-text">Human Resources</span>
             </h1>
 
-            <p class="hero-desc text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+            <p class="hero-desc text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium px-4">
                 Empower your workforce with our premium human resource management suite. Streamline payroll, manage attendance seamlessly, and elevate your entire team's productivity in one modern platform.
             </p>
 
@@ -294,15 +296,16 @@
 
         <!-- FEATURES VIEW -->
         <div id="features-section">
+            <div class="flex flex-col justify-center min-h-[calc(100vh-140px)] w-full">
             
-            <div onclick="hideFeatures()" class="back-btn flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
-                <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                    <i class="ph ph-caret-left"></i>
+                <div onclick="hideFeatures()" class="back-btn flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                        <i class="ph ph-caret-left"></i>
+                    </div>
+                    Back to Welcome
                 </div>
-                Back to Welcome
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-4 mx-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-4 mx-4">
                 
                 <div class="feature-card f-card-1 p-8 text-left flex flex-col items-start border-t-4 border-t-blue-500">
                     <div class="feature-icon-wrapper w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 border border-blue-200 dark:border-blue-500/20 shadow-lg shadow-blue-500/10">
@@ -328,6 +331,7 @@
                     <p class="text-[0.95rem] text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Accurate, timely salary generation integrated seamlessly with attendance and leave records.</p>
                 </div>
 
+            </div>
             </div>
         </div>
 
